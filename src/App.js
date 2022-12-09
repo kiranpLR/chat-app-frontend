@@ -3,7 +3,7 @@ import io from "socket.io-client";
 import { useState } from "react";
 import Chat from "./Chat";
 
-const socket = io.connect(`http://localhost:${process.env.PORT}`);
+const socket = io.connect(process.env.REACT_APP_BASE_API);
 
 function App() {
   const [username, setUsername] = useState("");

@@ -1,9 +1,22 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 import ScrollToBottom from "react-scroll-to-bottom";
 
 function Chat({ socket, username, room }) {
   const [currentMessage, setCurrentMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
+
+  useEffect(() => {
+    getMessages();
+  }, [socket]);
+
+  async function getMessages() {
+    const messages = await axios.get(
+      `${process.env.REACT_APP_BASE_API}/getMessages`
+    );
+    setMessageList(messages.data);
+    // console.log(messages.data, "messages=====");
+  }
 
   const sendMessage = async () => {
     if (currentMessage !== "") {
@@ -18,6 +31,10 @@ function Chat({ socket, username, room }) {
       };
 
       await socket.emit("send_message", messageData);
+      await axios.post(
+        `${process.env.REACT_APP_BASE_API}/setMessage`,
+        messageData
+      );
       setMessageList((list) => [...list, messageData]);
       setCurrentMessage("");
     }
@@ -36,24 +53,26 @@ function Chat({ socket, username, room }) {
       </div>
       <div className="chat-body">
         <ScrollToBottom className="message-container">
-          {messageList.map((messageContent) => {
-            return (
-              <div
-                className="message"
-                id={username === messageContent.author ? "you" : "other"}
-              >
-                <div>
-                  <div className="message-content">
-                    <p>{messageContent.message}</p>
-                  </div>
-                  <div className="message-meta">
-                    <p id="time">{messageContent.time}</p>
-                    <p id="author">{messageContent.author}</p>
+          {messageList &&
+            messageList.map((messageContent, index) => {
+              return (
+                <div
+                  className="message"
+                  id={username === messageContent.author ? "other" : "you"}
+                  key={index}
+                >
+                  <div>
+                    <div className="message-content">
+                      <p>{messageContent.message}</p>
+                    </div>
+                    <div className="message-meta">
+                      <p id="time">{messageContent.time}</p>
+                      <p id="author">{messageContent.author}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </ScrollToBottom>
       </div>
       <div className="chat-footer">
